@@ -2,39 +2,75 @@
 const fs = require("fs");
 const path = require("path");
 
-function safeRequire(p) { try { return require(p); } catch { return null; } }
+// ---- NEW: module-level caches (persist across requests) ----
+const validatorCacheByPath = new Map(); // absPath -> validate fn
 
-function compileAjv(ajv, absPath, cache) {
-    if (cache.has(absPath)) return cache.get(absPath);
-    const schema = JSON.parse(fs.readFileSync(absPath, "utf8"));
-    const validate = ajv.compile(schema);
-    cache.set(absPath, validate);
+function toFileId(absPath) {
+    // stable, unique ID per file path; normalize to POSIX-style for consistency
+    const p = absPath.replace(/\\/g, "/");
+    return `file://${p}`;
+}
+
+// ---- UPDATED: compile with caching + id handling ----
+function compileAjv(ajv, absPath) {
+    // 1) Reuse by absolute path
+    if (validatorCacheByPath.has(absPath)) return validatorCacheByPath.get(absPath);
+
+    const raw = fs.readFileSync(absPath, "utf8");
+    const schema = JSON.parse(raw);
+
+    let validate;
+
+    // 2) If schema declares $id, reuse Ajv's existing compiled validator if present
+    if (schema.$id) {
+        const existing = ajv.getSchema(schema.$id);
+        if (existing) {
+            validate = existing;
+        } else {
+            validate = ajv.compile(schema);
+        }
+    } else {
+        // 3) No $id → give it a deterministic one based on file path
+        const schemaWithId = { ...schema, $id: toFileId(absPath) };
+        const existing = ajv.getSchema(schemaWithId.$id);
+        validate = existing ? existing : ajv.compile(schemaWithId);
+    }
+
+    validatorCacheByPath.set(absPath, validate);
     return validate;
 }
 
 function resolveSchemaPath(schemaRef, { flowRoot, commonSchemasDir }) {
     if (!schemaRef) return null;
-    if (Array.isArray(schemaRef)) return schemaRef.map(s => resolveSchemaPath(s, { flowRoot, commonSchemasDir }));
-    if (schemaRef.startsWith("@common/")) return path.join(commonSchemasDir, schemaRef.slice(8));
+    if (Array.isArray(schemaRef)) {
+        return schemaRef.map(s => resolveSchemaPath(s, { flowRoot, commonSchemasDir }));
+    }
+    if (schemaRef.startsWith("@common/")) {
+        return path.join(commonSchemasDir, schemaRef.replace("@common/", ""));
+    }
     return path.join(flowRoot, schemaRef); // e.g., "schemas/order.schema.json"
 }
 
 async function getValidatorForFlow(flowId, { ajv, flowsDir, commonSchemasDir }) {
     const flowRoot = path.join(flowsDir, flowId);
-    const flowMod  = safeRequire(path.join(flowRoot, "index.js")) || {};
+    const flowModPath = path.join(flowRoot, "index.js");
+
+    let flowMod = {};
+    try { flowMod = require(flowModPath); } catch (_) { /* optional */ }
+
     const selectSchema   = flowMod.selectSchema || (() => null);
     const customValidate = flowMod.validate     || (() => []);
 
-    const cache = new Map();
-
     async function validate(message, ctx) {
-        let valid = true, schemaErrors = [], customErrors = [];
+        let valid = true;
+        let schemaErrors = [];
+        let customErrors = [];
 
-        const selection   = selectSchema(message, ctx);
+        const selection = selectSchema(message, ctx);
         const schemaPaths = resolveSchemaPath(selection, { flowRoot, commonSchemasDir });
 
         const runOne = (abs) => {
-            const v = compileAjv(ajv, abs, cache);
+            const v = compileAjv(ajv, abs);
             const ok = v(message);
             return { ok, errs: v.errors || [] };
         };
@@ -48,12 +84,13 @@ async function getValidatorForFlow(flowId, { ajv, flowsDir, commonSchemasDir }) 
             const { ok, errs } = runOne(schemaPaths);
             if (!ok) { valid = false; schemaErrors = errs; }
         } else {
-            // optional fallback: single-file heuristic
+            // Optional heuristic: use the single schema file in ./schemas if exactly one exists
             const dir = path.join(flowRoot, "schemas");
             if (fs.existsSync(dir)) {
                 const files = fs.readdirSync(dir).filter(f => f.endsWith(".json"));
                 if (files.length === 1) {
-                    const { ok, errs } = runOne(path.join(dir, files[0]));
+                    const abs = path.join(dir, files[0]);
+                    const { ok, errs } = runOne(abs);
                     if (!ok) { valid = false; schemaErrors = errs; }
                 }
             }
