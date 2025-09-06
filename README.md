@@ -17,6 +17,10 @@ RequestWeaver is a sidecar validator and dashboard that mirrors live API request
 * **Docker-ready** with a simple Compose file
 
 ---
+## Architecture
+
+![Diagram](docs/architecture.png)
+---
 
 ## Quick Start (Docker Compose)
 
@@ -98,7 +102,7 @@ volumes:
 src/                     # framework code (no edits needed to consume)
   server.js              # starts HTTP server
   app.js                 # Express app (views, routes, middleware)
-  config.js              # PORT, EXTENSIONS_DIR, …
+  index.js              # PORT, EXTENSIONS_DIR, …
   core/engine.js         # loads per-flow validators + resolves schemas
   store/state.store.js   # in-memory Sessions/Flows/Messages
   services/              # validation, dashboard model, exports

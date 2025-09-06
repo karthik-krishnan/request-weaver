@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Message <%= message.messageId %></title>
+    <link rel="stylesheet" href="/state.css" />
+</head>
+<body class="wrap">
+<h1>Message <code><%= message.messageId %></code></h1>
+
+<div class="meta">
+    <% if (sessionId) { %>Session: <code><%= sessionId %></code> — <% } %>
+    <% if (flowId) { %>Flow: <code><%= flowId %></code> — <% } %>
+    Timestamp: <%= message.timestamp %>
+</div>
+
+<div class="controls" style="margin: 8px 0 12px;">
+    <a class="btn" href="/dashboard/html">← Back to Dashboard</a>
+    <a class="btn" href="/messages/<%= message.messageId %>.json" target="_blank">View JSON</a>
+    <button class="btn btn--primary" onclick="copyMessage()">Copy Message</button>
+</div>
+
+<table>
+    <thead>
+    <tr><th>Message Id</th><th>Status</th><th>Errors</th></tr>
+    </thead>
+    <tbody>
+    <tr class="<%= message.ValidationStatus === 'Valid' ? 'valid' : 'invalid' %>">
+        <td><%= message.messageId %></td>
+        <td><%= message.ValidationStatus %></td>
+        <td>
+            <% if (message.formattedErrorList && message.formattedErrorList.length) { %>
+                <ul>
+                    <% message.formattedErrorList.forEach(function(e){ %>
+                        <li><%= e %></li>
+                    <% }) %>
+                </ul>
+            <% } else { %>
+                <em>None</em>
+            <% } %>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 class="section">Payload</h2>
+<pre id="message" class="mt-2"><code><%- payloadPretty %></code></pre>
+
+<script>
+    function copyToClipboardFallback(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+        }
+        document.body.removeChild(textarea);
+    }
+
+    async function copyMessage() {
+        const txt = document.getElementById('message').innerText;
+        copyToClipboardFallback(txt);
+        // try { await navigator.clipboard.writeText(txt); alert('Message copied'); }
+        // catch (e) { alert('Copy failed: ' + e); }
+    }
+</script>
+</body>
+</html>

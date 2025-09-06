@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Validation Dashboard</title>
+    <link rel="stylesheet" href="/state.css" />
+</head>
+<body>
+<div class="wrap">
+    <h1>Validation Dashboard</h1>
+
+    <div id="header" class="flex">
+        <div id="header-info"><span class="tag">No active session</span></div>
+        <div class="spacer"></div>
+        <label class="tag"><input type="checkbox" id="autoChk" checked> Auto-refresh</label>
+    </div>
+
+    <div id="totals" class="counts"></div>
+
+    <div class="controls">
+        <button id="btnStartSession" class="btn btn--primary" onclick="startSession()">Start Session</button>
+        <button id="btnEndSession"   class="btn"              onclick="endSession()">End Session</button>
+        <button id="btnStartFlow"    class="btn btn--primary" onclick="startFlow()">Start Flow…</button>
+        <button id="btnEndFlow"      class="btn"              onclick="endFlow()">End Flow</button>
+        <button id="btnClearAll"     class="btn btn--danger"  onclick="clearAll()">Clear All</button>
+        <a class="btn" href="/state">View JSON</a>
+        <a class="btn" href="/export/all.xlsx">Export All (xlsx)</a>
+    </div>
+
+    <div id="root"></div>
+</div>
+
+<script>
+    const $id = (x) => document.getElementById(x);
+    let latestModel = null; // keep the last model for button guards
+
+    function setControls(model) {
+        const hasSession = !!(model.current && model.current.sessionId);
+        const hasFlow    = !!(model.current && model.current.flowId);
+
+        // Policy: allow starting a NEW session anytime (auto-ends old one)
+        $id('btnStartSession').disabled = false;
+
+        // End Session only when a session exists
+        $id('btnEndSession').disabled = !hasSession;
+
+        // Start Flow only when a session exists
+        $id('btnStartFlow').disabled = !hasSession;
+
+        // End Flow only when a flow exists
+        $id('btnEndFlow').disabled = !hasFlow;
+    }
+
+    // --- utils ---
+    const openKeys = new Set();
+    let auto = true;
+
+    const esc = s => String(s ?? "").replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    const fidKey = (sid,fid) => `flow:${sid}:${fid}`;
+
+    function captureOpen() {
+        openKeys.clear();
+        document.querySelectorAll('details[open]').forEach(d => openKeys.add(d.id));
+    }
+    function restoreOpen() {
+        openKeys.forEach(id => { const d = document.getElementById(id); if (d) d.setAttribute('open',''); });
+    }
+
+    // --- render ---
+    function render(model) {
+        // Header: Current session/flow
+        const headerInfo = document.getElementById('header-info');
+        headerInfo.innerHTML = (model.current && model.current.sessionId)
+            ? `Current Session: <span class="badge badge-current">${esc(model.current.sessionId)}</span>${
+                model.current.flowId
+                    ? ` — Current Flow: <span class="badge badge-current">${esc(model.current.flowId)}</span>`
+                    : ''
+            }`
+            : `<span class="tag">No active session</span>`;
+
+        // Totals
+        const totals = document.getElementById('totals');
+        totals.innerHTML = `
+      <span>Total Sessions: <b>${model.totals?.sessions ?? 0}</b></span>
+      <span>Total Flows: <b>${model.totals?.flows ?? 0}</b></span>
+      <span>Total Messages: <b>${model.totals?.messages ?? 0}</b></span>
+      <span class="ok">Valid: <b>${model.totals?.valid ?? 0}</b></span>
+      <span class="bad">Invalid: <b>${model.totals?.invalid ?? 0}</b></span>
+    `;
+
+        // Body
+        const root = document.getElementById('root');
+        const parts = [];
+
+        const sessions = model.sessions || [];
+        if (sessions.length === 0) {
+            parts.push(`<p><em>No sessions yet.</em></p>`);
+        } else {
+            for (const s of sessions) {
+                parts.push(`
+          <section class="section">
+            <h2>
+              Session <code>${esc(s.sessionId)}</code>
+              ${s.isCurrent ? `<span class="badge badge-current">current</span>` : ``}
+            </h2>
+            <div class="meta">
+              Created: ${esc(s.createdAt)}
+              ${s.endedAt ? ` — Ended: ${esc(s.endedAt)}` : ``}
+              — Flows: ${s.flowCount ?? 0}
+              — Messages: ${s.messageCount ?? 0}
+              — <span class="ok">Valid: ${s.validCount ?? 0}</span>
+              — <span class="bad">Invalid: ${s.invalidCount ?? 0}</span>
+              — <a href="/sessions/${esc(s.sessionId)}/export.xlsx">Export Session</a>
+            </div>
+        `);
+
+                const flows = s.flows || [];
+                if (flows.length === 0) {
+                    parts.push(`<p><em>No flows in this session.</em></p>`);
+                } else {
+                    for (const f of flows) {
+                        const openAttr = (f.isCurrent ? ' open' : (document.getElementById(fidKey(s.sessionId, f.flowId))?.open ? ' open' : ''));
+                        parts.push(`
+              <details id="${fidKey(s.sessionId, f.flowId)}" class="details"${openAttr}>
+                <summary class="summary">
+                  Flow <code>${esc(f.flowId)}</code> — ${esc(f.name ?? f.flowId)}
+                  ${f.isCurrent ? `<span class="badge badge-current">current</span>` : ``}
+                  <span class="tag">
+                    &nbsp;Created: ${esc(f.createdAt)} ${f.endedAt ? ` — Ended: ${esc(f.endedAt)}` : ``}
+                    — Messages: ${f.messageCount ?? (f.messages?.length ?? 0)}
+                    — <span class="ok">Valid: ${f.validCount ?? 0}</span>
+                    — <span class="bad">Invalid: ${f.invalidCount ?? 0}</span>
+                    — <a href="/sessions/${esc(s.sessionId)}/flows/${esc(f.flowId)}/export.xlsx" target="_blank">Export Flow</a>
+                  </span>
+                </summary>
+
+                <table class="mt-2">
+                  <thead>
+                    <tr><th>When</th><th>Message ID</th><th>Status</th><th>Errors</th></tr>
+                  </thead>
+                  <tbody>
+                    ${
+                            (!f.messages || f.messages.length === 0)
+                                ? `<tr><td colspan="4"><em>No messages</em></td></tr>`
+                                : f.messages.map(p => {
+                                    const ok = p.ValidationStatus === 'Valid';
+                                    const errs = (p.formattedErrorList || []).map(e => `<li>${esc(e)}</li>`).join('');
+                                    return `
+                              <tr class="${ok ? 'valid' : 'invalid'}">
+                                <td>${esc(p.timestamp)}</td>
+                                <td><a href="/messages/${esc(p.messageId)}" target="_blank"><code>${esc(p.messageId)}</code></a></td>
+                                <td>${esc(p.ValidationStatus)}</td>
+                                <td>${errs ? `<ul>${errs}</ul>` : `<em>None</em>`}</td>
+                              </tr>
+                            `;
+                                }).join('')
+                        }
+                  </tbody>
+                </table>
+              </details>
+            `);
+                    }
+                }
+                parts.push(`</section>`);
+            }
+        }
+
+        document.getElementById('root').innerHTML = parts.join('');
+
+        // persist expanded sections
+        document.querySelectorAll('details').forEach(d => {
+            d.addEventListener('toggle', () => { if (d.open) openKeys.add(d.id); else openKeys.delete(d.id); });
+        });
+    }
+
+    // --- data & actions ---
+    async function fetchAndRender() {
+        try {
+            captureOpen();
+            const res = await fetch('/dashboard/data');
+            const model = await res.json();
+            latestModel = model;
+            render(model);
+            setControls(model);
+            restoreOpen();
+        } catch (e) { console.warn('Refresh failed:', e); }
+    }
+
+    async function api(path, method='GET', body) {
+        const opts = { method, headers: {} };
+        if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+        const res = await fetch(path, opts);
+        if (!res.ok) throw new Error(await res.text());
+        return res.json().catch(() => ({}));
+    }
+
+    async function clearAll(){ if(!confirm('Clear ALL sessions, flows, and messages?'))return; await api('/state','DELETE'); await fetchAndRender(); }
+    async function startSession(){
+        try { await api('/sessions','POST'); await fetchAndRender(); }
+        catch (e) { alert('Start Session failed: ' + e.message); }
+    }
+
+    async function endSession(){
+        if (!latestModel?.current?.sessionId) return alert('No active session.');
+        try { await api('/sessions/end','POST'); await fetchAndRender(); }
+        catch (e) { alert('End Session failed: ' + e.message); }
+    }
+
+    async function startFlow(){
+        if (!latestModel?.current?.sessionId) return alert('Start a session first.');
+        const flowId = prompt('Enter flowId (alphanumeric + underscore):'); if(!flowId) return;
+        const name = prompt('Optional flow name:', flowId) || flowId;
+        try { await api('/flows','POST',{ flowId, name }); await fetchAndRender(); }
+        catch (e) { alert('Start Flow failed: ' + e.message); }
+    }
+
+    async function endFlow(){
+        if (!latestModel?.current?.flowId) return alert('No active flow.');
+        try { await api('/flows/end','POST'); await fetchAndRender(); }
+        catch (e) { alert('End Flow failed: ' + e.message); }
+    }
+
+    const chk = document.getElementById('autoChk');
+    chk.addEventListener('change', () => { auto = chk.checked; });
+    setInterval(() => { if (auto) fetchAndRender(); }, 2000);
+    fetchAndRender();
+</script>
+</body>
+</html>

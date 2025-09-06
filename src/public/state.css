@@ -1,0 +1,108 @@
+/* ========== Base layout & typography ========== */
+body {
+    font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    padding: 16px;
+}
+
+.wrap { max-width: 1200px; margin: 0 auto; }
+
+/* ========== Tables ========== */
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; }
+th { background: #f3f4f6; text-align: left; }
+
+/* Pass/Fail row tints */
+tr.valid { background: #ecfdf5; }   /* green-50 */
+tr.invalid { background: #fef2f2; } /* red-50 */
+
+/* Lists inside cells */
+ul { margin: 0; padding-left: 18px; }
+
+/* ========== Text helpers ========== */
+.meta { color: #6b7280; font-size: 12px; margin: 8px 0 16px; }
+.tag  { color: #6b7280; font-size: 12px; }
+
+/* ========== Buttons ========== */
+.btn {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+}
+.btn:hover { background: #f9fafb; }
+
+.btn--primary { border-color: #60a5fa; }
+.btn--danger  { border-color: #fca5a5; color: #b91c1c; }
+.btn[disabled] {
+    opacity: .5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ========== Badges ========== */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    background: #e5e7eb;
+    color: #111827;
+}
+.badge-current { background: #fee2e2; color: #b91c1c; }
+
+/* ========== Flex utilities ========== */
+.flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.spacer { flex: 1 1 auto; }
+
+/* ========== Counters & status ========== */
+.counts { display: flex; flex-wrap: wrap; gap: 12px; }
+.counts .ok  { color: #065f46; }
+.counts .bad { color: #991b1b; }
+
+/* ========== Controls row ========== */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px; /* breathing room below buttons */
+}
+
+/* ========== Header & Totals spacing ========== */
+/* Header row: "Current Session …  Auto-refresh" */
+#header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+/* Totals line: "Total Sessions/Flows/Events …" */
+#totals.counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 8px 0 16px;
+}
+
+/* ========== Sections & details (hierarchy) ========== */
+.section {
+    margin: 18px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.details { margin-bottom: 18px; }
+summary.summary { cursor: pointer; font-weight: 600; }
+
+/* ========== Utilities ========== */
+.mt-2 { margin-top: 8px; }
+
+/* ========== Responsive tweaks ========== */
+@media (max-width: 640px) {
+    .controls { flex-direction: column; align-items: stretch; }
+}
