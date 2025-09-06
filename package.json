@@ -1,0 +1,31 @@
+{
+  "name": "request-weaver",
+  "version": "0.1.0",
+  "description": "RequestWeaver is a sidecar validator and dashboard that mirrors live API requests (via a proxy like mitmproxy) and validates them using **JSON Schema** and **custom cross-request rules**. Requests are organized into **Sessions → Flows → Messages** so you can validate end-to-end scenarios without changing your app or backend.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karthik-krishnan/request-weaver.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/karthik-krishnan/request-weaver/issues"
+  },
+  "homepage": "https://github.com/karthik-krishnan/request-weaver#readme",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "ejs": "^3.1.10",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
