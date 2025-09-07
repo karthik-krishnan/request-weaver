@@ -1,0 +1,12 @@
+node_modules
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+extensions/      # mounted at runtime; don’t bake into image
+mitm/            # only for consumer compose demos
+docs/

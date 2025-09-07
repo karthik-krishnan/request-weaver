@@ -222,6 +222,12 @@ module.exports = {
 RequestWeaver uses **Ajv** with `ajv-formats`.
 
 ---
+## Docker Run
+```
+docker run --rm -p 8000:8000 -e EXTENSIONS_DIR=/workspace/extensions \
+  -v "$(pwd)/extensions:/workspace/extensions:ro" requestweaver:local
+
+```
 
 ## Exports
 
