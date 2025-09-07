@@ -238,20 +238,20 @@ docker run --rm -p 8000:8000 -e EXTENSIONS_DIR=/workspace/extensions \
 Columns: **Message ID**, Session ID, Flow ID, Timestamp, Status, Errors, **Message (JSON)**.
 
 ---
+## Mirror Proxy Setup
 
-## mitmproxy integration
-
-Use mitmproxy to pass traffic through to your API while mirroring a copy to RequestWeaver.
-
-* Addon/scripts repo: [https://github.com/karthik-krishnan/mitmproxy\_scripts](https://github.com/karthik-krishnan/mitmproxy_scripts)
+For a quick start, I have created a simple mirroring addon(on mitmproxy) to pass traffic through to your API while mirroring a copy to RequestWeaver.
+You can find the repo [here](https://github.com/karthik-krishnan/mitm-mirror). 
 
 * Example command:
 
   ```bash
-  mitmdump -p 8080 \
-    -s simplified_mirror.py \
-    --set mirror_base=http://localhost:8000 \
-    --set mirror_match=http://api.example.com
+  docker run --rm -it \
+  -p 8080:8080 \
+  -e MIRROR_BASE=http://host.docker.internal:8000 \
+  -e MIRROR_PATH=/ \
+  -e MIRROR_MATCH=http://api.example.com \
+  ghcr.io/karthik-krishnan/mitm-mirror:1.0.0
   ```
 
 * In Docker Compose, point to the validator by **service name**:
