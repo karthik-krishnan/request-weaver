@@ -1,8 +1,9 @@
 const { newSessionId } = require("../utils/id");
 
 const state = {
-    sessions: {},                // { [sessionId]: { createdAt, endedAt, flows: { [flowId]: { name, createdAt, endedAt, messages: [] }}}}
-    current: { sessionId: null, flowId: null }
+    sessions: {},
+    current: { sessionId: null, flowId: null },
+    index:   { messagesById: new Map() },
 };
 
 function getState() { return state; }
@@ -55,11 +56,34 @@ function findByMessageId(messageId) {
     return { sessionId: null, flowId: null, message: null };
 }
 
+function snapshot() {
+    // lightweight view; adjust if you store more fields
+    const sessions = Object.fromEntries(
+        Object.entries(state.sessions).map(([sid, s]) => ([
+            sid,
+            {
+                name: s.name || null,
+                startedAt: s.startedAt,
+                endedAt: s.endedAt || null,
+                flows: Object.fromEntries(
+                    Object.entries(s.flows || {}).map(([fid, f]) => ([
+                        fid,
+                        { name: f.name || null, startedAt: f.startedAt, endedAt: f.endedAt || null, messageCount: (f.messages || []).length }
+                    ]))
+                )
+            }
+        ]))
+    );
+    return { current: { ...state.current }, sessions };
+}
+
 function clearAll() {
     state.sessions = {};
     state.current = { sessionId: null, flowId: null };
+    state.index.messagesById.clear?.();
+    return { ok: true, cleared: true };
 }
 
 module.exports = {
-    getState, startSession, endSession, startFlow, endFlow, addMessage, findByMessageId, clearAll
+    getState, startSession, endSession, startFlow, endFlow, addMessage, findByMessageId, snapshot, clearAll
 };

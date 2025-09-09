@@ -107,4 +107,8 @@ async function getValidatorForFlow(flowId, { ajv, flowsDir, commonSchemasDir }) 
     return { validate };
 }
 
-module.exports = { getValidatorForFlow };
+function _clearEngineCaches(ajv) {
+    validatorCacheByPath.clear();
+    ajv.removeSchema(); // clears all schemas from Ajv
+}
+module.exports = { getValidatorForFlow, _clearEngineCaches };
