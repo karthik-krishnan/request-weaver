@@ -1,6 +1,10 @@
 # RequestWeaver (Node 20, Alpine)
 FROM node:20-alpine
 
+#USER root
+RUN apk add --no-cache curl ca-certificates && update-ca-certificates
+#USER node
+
 WORKDIR /app
 ENV NODE_ENV=production
 
