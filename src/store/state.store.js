@@ -56,12 +56,12 @@ function findByMessageId(messageId) {
     return { sessionId: null, flowId: null, message: null };
 }
 
-// expose a richer snapshot for GET /state
+// expose a richer snapshot for GET /state (with per-session summary)
 function snapshot() {
-    const sessions = {}; // renamed from outSessions
-    let totalSessions = 0;
-    let totalFlows = 0;
-    let totalMessages = 0;
+    const sessions = {}; // output view
+    let sessionCount = 0;
+    let totalFlowCount = 0;
+    let totalMessageCount = 0;
     let totalValid = 0;
     let totalInvalid = 0;
 
@@ -72,25 +72,33 @@ function snapshot() {
     };
 
     for (const [sid, s] of Object.entries(state.sessions)) {
-        totalSessions++;
+        sessionCount++;
 
         const flows = {};
-        for (const [fid, f] of Object.entries(s.flows || {})) {
-            totalFlows++;
-            const msgs = Array.isArray(f.messages) ? f.messages : [];
+        let sessionFlowCount = 0;
+        let sessionMsgCount = 0;
+        let sessionValidCount = 0;
+        let sessionInvalidCount = 0;
 
-            let validCount = 0;
-            for (const m of msgs) if (isValidStatus(m?.ValidationStatus)) validCount++;
+        for (const [fid, f] of Object.entries(s.flows || {})) {
+            sessionFlowCount++;
+            totalFlowCount++;
+
+            const msgs = Array.isArray(f.messages) ? f.messages : [];
+            const validCount = msgs.reduce((acc, m) => acc + (isValidStatus(m?.ValidationStatus) ? 1 : 0), 0);
             const messageCount = msgs.length;
             const invalidCount = messageCount - validCount;
 
-            totalMessages += messageCount;
+            sessionMsgCount += messageCount;
+            sessionValidCount += validCount;
+            sessionInvalidCount += invalidCount;
+
+            totalMessageCount += messageCount;
             totalValid += validCount;
             totalInvalid += invalidCount;
 
             flows[fid] = {
-                // keep flow name if you have it; safe if undefined
-                name: f.name ?? null,
+                name: f.name ?? null,            // flow still has a name
                 startedAt: f.startedAt ?? null,
                 endedAt: f.endedAt ?? null,
                 messageCount,
@@ -99,10 +107,15 @@ function snapshot() {
             };
         }
 
-        // NOTE: session-level 'name' removed as requested
         sessions[sid] = {
             startedAt: s.startedAt ?? null,
             endedAt: s.endedAt ?? null,
+            summary: {                         // NEW: per-session summary
+                flowCount: sessionFlowCount,
+                messageCount: sessionMsgCount,
+                validCount: sessionValidCount,
+                invalidCount: sessionInvalidCount,
+            },
             flows: flows,
         };
     }
@@ -110,35 +123,14 @@ function snapshot() {
     return {
         current: { ...state.current },
         summary: {
-            totalSessions,
-            totalFlows,
-            totalMessages,
-            totalValid,
-            totalInvalid,
+            sessionCount: sessionCount,
+            flowCount: totalFlowCount,
+            messageCount: totalMessageCount,
+            validCount: totalValid,
+            invalidCount: totalInvalid,
         },
-        sessions: sessions, // key stays 'sessions'; only the local var is renamed
+        sessions: sessions,
     };
-}
-
-function snapshot_old() {
-    // lightweight view; adjust if you store more fields
-    const sessions = Object.fromEntries(
-        Object.entries(state.sessions).map(([sid, s]) => ([
-            sid,
-            {
-                name: s.name || null,
-                startedAt: s.startedAt,
-                endedAt: s.endedAt || null,
-                flows: Object.fromEntries(
-                    Object.entries(s.flows || {}).map(([fid, f]) => ([
-                        fid,
-                        { name: f.name || null, startedAt: f.startedAt, endedAt: f.endedAt || null, messageCount: (f.messages || []).length }
-                    ]))
-                )
-            }
-        ]))
-    );
-    return { current: { ...state.current }, sessions };
 }
 
 function clearAll() {
