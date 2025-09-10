@@ -1,0 +1,28 @@
+services:
+  request-weaver:
+    image: ghcr.io/karthik-krishnan/request-weaver:1.0
+    environment:
+      PORT: "${PORT:-8000}"
+      EXTENSIONS_DIR: /workspace/extensions
+    volumes:
+      - ./extensions:/workspace/extensions:ro
+    ports:
+      - "${PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/test"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  mitm-proxy:
+    image: ghcr.io/karthik-krishnan/mitm-mirror:1.0
+    profiles: [ "mitm-proxy" ]
+    depends_on:
+      request-weaver:
+        condition: service_healthy
+    ports:
+      - "${PROXY_PORT:-8080}:8080"
+    environment:
+      MIRROR_BASE: http://request-weaver:${PORT}
+      MIRROR_MATCH: ""

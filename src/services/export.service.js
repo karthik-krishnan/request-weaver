@@ -17,12 +17,12 @@ function collectRows(scope = {}) {
     const sessions = st.sessions || {};
     const { sessionId, flowId } = scope;
     if (sessionId && flowId) {
-        const fl = sessions[sessionId]?.flows?.[flowId]; if (fl) fl.events.forEach(ev => push(sessionId, flowId, ev)); return rows;
+        const fl = sessions[sessionId]?.flows?.[flowId]; if (fl) fl.messages.forEach(m => push(sessionId, flowId, m)); return rows;
     }
     if (sessionId) {
-        const s = sessions[sessionId]; if (s) Object.entries(s.flows || {}).forEach(([fid, fl]) => fl.events.forEach(ev => push(sessionId, fid, ev))); return rows;
+        const s = sessions[sessionId]; if (s) Object.entries(s.flows || {}).forEach(([fid, fl]) => fl.messages.forEach(m => push(sessionId, fid, m))); return rows;
     }
-    Object.entries(sessions).forEach(([sid, s]) => Object.entries(s.flows || {}).forEach(([fid, fl]) => fl.events.forEach(ev => push(sid, fid, ev))));
+    Object.entries(sessions).forEach(([sid, s]) => Object.entries(s.flows || {}).forEach(([fid, fl]) => fl.messages.forEach(m => push(sid, fid, m))));
     return rows;
 }
 
