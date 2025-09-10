@@ -54,6 +54,16 @@ ul { margin: 0; padding-left: 18px; }
 }
 .badge-current { background: #fee2e2; color: #b91c1c; }
 
+/* Flow status badges */
+.badge-pass  { background:#10b981; color:#fff; } /* emerald-500 */
+.badge-fail  { background:#ef4444; color:#fff; } /* red-500 */
+.badge-empty { background:#9ca3af; color:#fff; } /* gray-400 */
+
+/* Subtle tint + left border on flow headers */
+.details.flow--pass  > summary { background:#ecfdf5; border-left:4px solid #10b981; }
+.details.flow--fail  > summary { background:#fef2f2; border-left:4px solid #ef4444; }
+.details.flow--empty > summary { background:#f3f4f6; border-left:4px solid #9ca3af; }
+
 /* ========== Flex utilities ========== */
 .flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .spacer { flex: 1 1 auto; }
