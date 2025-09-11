@@ -25,4 +25,4 @@ services:
       - "${PROXY_PORT:-8080}:8080"
     environment:
       MIRROR_BASE: http://request-weaver:${PORT}
-      MIRROR_MATCH: ""
+      MIRROR_MATCH: ${MIRROR_MATCH:-""}

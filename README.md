@@ -209,6 +209,19 @@ module.exports = {
   }
 };
 ```
+## Consumer Starter
+
+To get going quickly, copy the starter into your own repo:
+
+```bash
+rsync -a templates/consumer-starter/ ./my-tests/
+cd my-tests
+cp .env.example .env
+docker compose up --build
+```
+
+* Dashboard: http://localhost:${PORT:-8000}/dashboard/html
+* (Optional) Start with mitmproxy sidecar: docker compose --profile mitm up --build
 
 ### Schema resolution
 
