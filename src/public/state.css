@@ -21,6 +21,7 @@ ul { margin: 0; padding-left: 18px; }
 /* ========== Text helpers ========== */
 .meta { color: #6b7280; font-size: 12px; margin: 8px 0 16px; }
 .tag  { color: #6b7280; font-size: 12px; }
+.meta a {font-weight: 600;}
 
 /* ========== Buttons ========== */
 .btn {
@@ -49,6 +50,7 @@ ul { margin: 0; padding-left: 18px; }
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+    font-weight: 600;
 }
 .summary .line2 {
     display: block;        /* forces a new line */
@@ -57,6 +59,7 @@ ul { margin: 0; padding-left: 18px; }
     font-size: 12px;       /* smaller second line */
     color: #6b7280;        /* gray-500 */
 }
+.summary a { font-weight: 600; }
 
 /* ========== Badges ========== */
 .badge {
@@ -123,7 +126,7 @@ ul { margin: 0; padding-left: 18px; }
 }
 
 .details { margin-bottom: 18px; }
-summary.summary { cursor: pointer; font-weight: 600; }
+summary.summary { cursor: pointer; }
 
 
 /* ========== Utilities ========== */
