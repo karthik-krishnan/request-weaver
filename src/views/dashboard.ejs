@@ -93,8 +93,8 @@
       <span>Total Sessions: <b>${model.totals?.sessions ?? 0}</b></span>
       <span>Total Flows: <b>${model.totals?.flows ?? 0}</b></span>
       <span>Total Messages: <b>${model.totals?.messages ?? 0}</b></span>
-      <span class="ok">Valid: <b>${model.totals?.valid ?? 0}</b></span>
-      <span class="bad">Invalid: <b>${model.totals?.invalid ?? 0}</b></span>
+      <span class="ok">Pass: <b>${model.totals?.valid ?? 0}</b></span>
+      <span class="bad">Fail: <b>${model.totals?.invalid ?? 0}</b></span>
     `;
 
         // Body
@@ -117,8 +117,8 @@
               ${s.endedAt ? ` — Ended: ${esc(s.endedAt)}` : ``}
               — Flows: ${s.flowCount ?? 0}
               — Messages: ${s.messageCount ?? 0}
-              — <span class="ok">Valid: ${s.validCount ?? 0}</span>
-              — <span class="bad">Invalid: ${s.invalidCount ?? 0}</span>
+              — <span class="ok">Pass: ${s.validCount ?? 0}</span>
+              — <span class="bad">Fail: ${s.invalidCount ?? 0}</span>
               — <a href="/sessions/${esc(s.sessionId)}/export.xlsx">Export Session</a>
             </div>
         `);
@@ -149,14 +149,14 @@
         <span class="badge ${status === 'pass' ? 'badge-pass' : status === 'fail' ? 'badge-fail' : 'badge-empty'}">
           ${status === 'pass' ? 'PASS' : status === 'fail' ? 'FAIL' : '—'}
         </span>
-        <span class="muted" style="margin-left:6px;">${v}/${m} valid</span>
+        <span class="muted" style="margin-left:6px;">${v}/${m} pass</span>
       </div>
 
       <div class="line2">
         Created: ${esc(f.createdAt)} ${f.endedAt ? ` — Ended: ${esc(f.endedAt)}` : ``}
         — Messages: ${m}
-        — <span class="ok">Valid: ${v}</span>
-        — <span class="bad">Invalid: ${inv}</span>
+        — <span class="ok">Pass: ${v}</span>
+        — <span class="bad">Fail: ${inv}</span>
         — <a href="/sessions/${esc(s.sessionId)}/flows/${esc(f.flowId)}/export.xlsx" target="_blank">Export Flow</a>
       </div>
     </summary>
@@ -169,14 +169,14 @@
         ${
                             (!f.messages || f.messages.length === 0)
                                 ? `<tr><td colspan="4"><em>No messages</em></td></tr>`
-                                : f.messages.map(p => {
-                                    const ok = p.ValidationStatus === 'Valid';
-                                    const errs = (p.formattedErrorList || []).map(e => `<li>${esc(e)}</li>`).join('');
+                                : f.messages.map(m => {
+                                    const ok = m.ValidationStatus === 'Valid';
+                                    const errs = (m.formattedErrorList || []).map(e => `<li>${esc(e)}</li>`).join('');
                                     return `
                   <tr class="${ok ? 'valid' : 'invalid'}">
-                    <td>${esc(p.timestamp)}</td>
-                    <td><a href="/messages/${esc(p.messageId)}" target="_blank"><code>${esc(p.messageId)}</code></a></td>
-                    <td>${esc(p.ValidationStatus)}</td>
+                    <td>${esc(m.timestamp)}</td>
+                    <td><a href="/messages/${esc(m.messageId)}" target="_blank"><code>${esc(m.messageId)}</code></a></td>
+                    <td>${m.ValidationStatus === "Valid"? "Pass" : "Fail"}</td>
                     <td>${errs ? `<ul>${errs}</ul>` : `<em>None</em>`}</td>
                   </tr>
                 `;
