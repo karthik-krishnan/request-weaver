@@ -42,12 +42,28 @@ ul { margin: 0; padding-left: 18px; }
     cursor: not-allowed;
     pointer-events: none;
 }
+/* Flow header layout: 2 lines */
+.summary { padding: 10px 12px; }               /* vertical padding so text doesn't touch bottom */
+.summary .line1 {
+    display: inline;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.summary .line2 {
+    display: block;        /* forces a new line */
+    width: 100%;
+    margin-top: 6px;
+    font-size: 12px;       /* smaller second line */
+    color: #6b7280;        /* gray-500 */
+}
 
 /* ========== Badges ========== */
 .badge {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 9999px;
+    padding: 3px 10px;
+    line-height: 1.4;
+    border-radius: 999px;
     font-size: 12px;
     background: #e5e7eb;
     color: #111827;
@@ -60,9 +76,9 @@ ul { margin: 0; padding-left: 18px; }
 .badge-empty { background:#9ca3af; color:#fff; } /* gray-400 */
 
 /* Subtle tint + left border on flow headers */
-.details.flow--pass  > summary { background:#ecfdf5; border-left:4px solid #10b981; }
-.details.flow--fail  > summary { background:#fef2f2; border-left:4px solid #ef4444; }
-.details.flow--empty > summary { background:#f3f4f6; border-left:4px solid #9ca3af; }
+.details.flow--pass  > summary { background:#ecfdf5; border-left:4px solid #10b981; margin-bottom:8px; }
+.details.flow--fail  > summary { background:#fef2f2; border-left:4px solid #ef4444; margin-bottom:8px; }
+.details.flow--empty > summary { background:#f3f4f6; border-left:4px solid #9ca3af; margin-bottom:8px; }
 
 /* ========== Flex utilities ========== */
 .flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -108,6 +124,7 @@ ul { margin: 0; padding-left: 18px; }
 
 .details { margin-bottom: 18px; }
 summary.summary { cursor: pointer; font-weight: 600; }
+
 
 /* ========== Utilities ========== */
 .mt-2 { margin-top: 8px; }

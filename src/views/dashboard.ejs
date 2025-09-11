@@ -141,52 +141,51 @@
                         );
 
                         parts.push(`
-    <details id="${fidKey(s.sessionId, f.flowId)}" class="details flow--${status}"${openAttr}>
-      <summary class="summary">
-        Flow <code>${esc(f.flowId)}</code> — ${esc(f.name ?? f.flowId)}
+  <details id="${fidKey(s.sessionId, f.flowId)}" class="details flow--${status}"${openAttr}>
+    <summary class="summary">
+      <div class="line1">
+        <span>Flow <code>${esc(f.flowId)}</code> — ${esc(f.name ?? f.flowId)}</span>
         ${f.isCurrent ? `<span class="badge badge-current">current</span>` : ``}
-
-        <!-- NEW: PASS/FAIL/— badge -->
-        <span class="badge ${
-                            status === 'pass' ? 'badge-pass' : status === 'fail' ? 'badge-fail' : 'badge-empty'
-                        }" style="margin-left:8px;">
+        <span class="badge ${status === 'pass' ? 'badge-pass' : status === 'fail' ? 'badge-fail' : 'badge-empty'}">
           ${status === 'pass' ? 'PASS' : status === 'fail' ? 'FAIL' : '—'}
         </span>
+        <span class="muted" style="margin-left:6px;">${v}/${m} valid</span>
+      </div>
 
-        <span class="tag" style="margin-left:8px;">
-          Created: ${esc(f.createdAt)} ${f.endedAt ? ` — Ended: ${esc(f.endedAt)}` : ``}
-          — Messages: ${m}
-          — <span class="ok">Valid: ${v}</span>
-          — <span class="bad">Invalid: ${inv}</span>
-          — <a href="/sessions/${esc(s.sessionId)}/flows/${esc(f.flowId)}/export.xlsx" target="_blank">Export Flow</a>
-        </span>
-      </summary>
+      <div class="line2">
+        Created: ${esc(f.createdAt)} ${f.endedAt ? ` — Ended: ${esc(f.endedAt)}` : ``}
+        — Messages: ${m}
+        — <span class="ok">Valid: ${v}</span>
+        — <span class="bad">Invalid: ${inv}</span>
+        — <a href="/sessions/${esc(s.sessionId)}/flows/${esc(f.flowId)}/export.xlsx" target="_blank">Export Flow</a>
+      </div>
+    </summary>
 
-      <table class="mt-2">
-        <thead>
-          <tr><th>When</th><th>Message ID</th><th>Status</th><th>Errors</th></tr>
-        </thead>
-        <tbody>
-          ${
+    <table class="mt-2">
+      <thead>
+        <tr><th>When</th><th>Message ID</th><th>Status</th><th>Errors</th></tr>
+      </thead>
+      <tbody>
+        ${
                             (!f.messages || f.messages.length === 0)
                                 ? `<tr><td colspan="4"><em>No messages</em></td></tr>`
                                 : f.messages.map(p => {
                                     const ok = p.ValidationStatus === 'Valid';
                                     const errs = (p.formattedErrorList || []).map(e => `<li>${esc(e)}</li>`).join('');
                                     return `
-                    <tr class="${ok ? 'valid' : 'invalid'}">
-                      <td>${esc(p.timestamp)}</td>
-                      <td><a href="/messages/${esc(p.messageId)}" target="_blank"><code>${esc(p.messageId)}</code></a></td>
-                      <td>${esc(p.ValidationStatus)}</td>
-                      <td>${errs ? `<ul>${errs}</ul>` : `<em>None</em>`}</td>
-                    </tr>
-                  `;
+                  <tr class="${ok ? 'valid' : 'invalid'}">
+                    <td>${esc(p.timestamp)}</td>
+                    <td><a href="/messages/${esc(p.messageId)}" target="_blank"><code>${esc(p.messageId)}</code></a></td>
+                    <td>${esc(p.ValidationStatus)}</td>
+                    <td>${errs ? `<ul>${errs}</ul>` : `<em>None</em>`}</td>
+                  </tr>
+                `;
                                 }).join('')
                         }
-        </tbody>
-      </table>
-    </details>
-  `);
+      </tbody>
+    </table>
+  </details>
+`);
                     }
 
                 }
