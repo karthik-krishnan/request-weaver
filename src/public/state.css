@@ -60,7 +60,7 @@ ul { margin: 0; padding-left: 18px; }
     color: #6b7280;        /* gray-500 */
 }
 .summary a { font-weight: 600; }
-
+.summary .muted { font-size: 12px; font-weight: normal; }
 /* ========== Badges ========== */
 .badge {
     display: inline-block;
