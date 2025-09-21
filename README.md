@@ -107,25 +107,11 @@ src/                     # framework code (no edits needed to consume)
   store/state.store.js   # in-memory Sessions/Flows/Messages
   services/              # validation, dashboard model, exports
   controllers/           # route handlers
+  config/                # config
   routes/                # express routers
   views/                 # EJS templates (dashboard.ejs, message.ejs)
   public/                # CSS/JS (state.css, …)
 
-extensions/              # ← consumer-owned; mount read-only
-  common-schemas/        # shared JSON Schemas (refer as @common/*.json)
-  flows/
-    checkout/
-      index.js           # per-flow schema selection + custom rules
-      schemas/
-        order.schema.json
-        payment.schema.json
-
-docs/
-  diagram.png            # (optional) architecture diagram for README
-
-mitm/
-  addons/                # your mitmproxy addon(s)
-  state/                 # persistent CA & flows (named volume recommended)
 ```
 
 ---
