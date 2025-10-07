@@ -22,12 +22,6 @@ RequestWeaver is a sidecar validator and dashboard that mirrors live API request
 ![Diagram](docs/request-weaver.png)
 ---
 
----
-## Dashboard
-
-![Diagram](docs/dashboard.png)
----
-
 ## Quick Start (Docker Compose)
 
 **Prerequisites:** Docker Desktop/Engine.
@@ -136,7 +130,7 @@ src/                     # framework code (no edits needed to consume)
 
 ---
 
-## Dashboard
+### Sample dashboard view
 
 ![Diagram](docs/dashboard.png)
 
