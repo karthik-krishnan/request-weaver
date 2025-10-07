@@ -136,6 +136,12 @@ src/                     # framework code (no edits needed to consume)
 
 ---
 
+## Dashboard
+
+![Diagram](docs/dashboard.png)
+
+---
+
 ## API (Sessions / Flows / Ingest)
 
 ```http
